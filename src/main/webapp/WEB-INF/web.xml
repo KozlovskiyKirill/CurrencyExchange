@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="4.0">
+
+    <display-name>CurrencyExchange</display-name>
+
+    <!-- Твои сервлеты здесь -->
+    <servlet>
+        <servlet-name>ExchangeServlet</servlet-name>
+        <servlet-class>ru.currency.ExchangeServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ExchangeServlet</servlet-name>
+        <url-pattern>/exchange</url-pattern>
+    </servlet-mapping>
+
+</web-app>
