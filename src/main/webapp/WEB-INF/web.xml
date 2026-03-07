@@ -6,7 +6,7 @@
     <!-- Твои сервлеты здесь -->
     <servlet>
         <servlet-name>ExchangeServlet</servlet-name>
-        <servlet-class>ru.currency.ExchangeServlet</servlet-class>
+        <servlet-class>servlet.ExchangeServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
