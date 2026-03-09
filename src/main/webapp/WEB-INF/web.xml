@@ -3,7 +3,6 @@
 
     <display-name>CurrencyExchange</display-name>
 
-    <!-- Твои сервлеты здесь -->
     <servlet>
         <servlet-name>ExchangeServlet</servlet-name>
         <servlet-class>servlet.ExchangeServlet</servlet-class>

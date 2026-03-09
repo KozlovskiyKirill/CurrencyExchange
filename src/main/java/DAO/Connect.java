@@ -8,6 +8,7 @@ import java.util.List;
     private final static String LOGIN = "root";
     private final static String PASSWORD = "1682023";
 
+     // попробовать убрать преждевременную установку и посмотреть заработает ли
      static {
          try {
              Class.forName("com.mysql.cj.jdbc.Driver");

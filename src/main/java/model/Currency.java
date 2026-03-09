@@ -8,7 +8,7 @@ public class Currency {
 
 
 
-    public Currency (int id, String code, String fullName, String sign){//модель
+    public Currency (int id, String fullName, String code, String sign){//модель
         // прокинуть проверки, пока на доверии
         _id = id;
         _code = code;
