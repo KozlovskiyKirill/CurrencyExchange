@@ -1,6 +1,7 @@
 package service;
 
 import DAO.CurrencyDAO;
+import DAO.ExchangeRatesDAO;
 import model.ExchangeRate;
 
 import java.sql.SQLException;
@@ -8,7 +9,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.Currency;
 import java.util.List;
 public class ExchangeRatesService {
-    private CurrencyDAO _dao = new CurrencyDAO();
+    private ExchangeRatesDAO _dao = new ExchangeRatesDAO();
 
 
 
