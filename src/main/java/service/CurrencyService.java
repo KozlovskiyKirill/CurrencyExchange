@@ -12,7 +12,7 @@ public class CurrencyService {
 
     public List<Currency> getAllCurrencies() throws SQLException {
         System.out.print("Зашли в сервис");
-        List currency = _currencyDao.getAll();
+        List<Currency> currency = _currencyDao.getAllCurrencies();
         return currency;
     }
 

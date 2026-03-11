@@ -2,13 +2,11 @@ package servlet;
 import model.Currency;
 import service.CurrencyService;
 
-import javax.servlet.ServletException;//что это?
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;// что это?
-import java.io.PrintWriter;// то это?
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import com.google.gson.Gson;
@@ -16,16 +14,15 @@ import com.google.gson.Gson;
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet{//контроллер
     private CurrencyService _service = new CurrencyService();
-    private List<Currency> _currencies;
     private final Gson gson = new Gson();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException,IOException{
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json;charset=UTF-8");
         System.out.println("In servlet");
         try {
             System.out.print("Зашли в сервлет, идем в сервис");
-            _currencies = _service.getAllCurrencies();
+            List<Currency> _currencies = _service.getAllCurrencies();
             resp.getWriter().write(gson.toJson(_currencies));
 
         } catch (Exception e) {
@@ -37,14 +34,16 @@ public class CurrenciesServlet extends HttpServlet{//контроллер
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)throws ServletException,IOException{
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)throws IOException{
         resp.setContentType("application/json;charset=UTF-8");
         try{
             //сделать проверку параметров
             String name = req.getParameter("name");
             String code = req.getParameter("code");
             String sign = req.getParameter("sign");
-            if (name.isEmpty()  || code.isEmpty() || sign.isEmpty()){
+            if (name == null || name.trim().isEmpty() ||
+                    code == null || code.trim().isEmpty() ||
+                    sign == null || sign.trim().isEmpty()) {
                 throw new BadRequestException("Отсутствует нужное поле формы");
             }
             Currency currency = _service.addCurrency(name,code,sign);
