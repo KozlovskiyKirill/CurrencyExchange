@@ -13,7 +13,7 @@ import com.google.gson.Gson;
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet{//контроллер
-    private CurrencyService _service = new CurrencyService();
+    private final CurrencyService _service = new CurrencyService();
     private final Gson gson = new Gson();
 
     @Override
@@ -25,10 +25,10 @@ public class CurrenciesServlet extends HttpServlet{//контроллер
             List<Currency> _currencies = _service.getAllCurrencies();
             resp.getWriter().write(gson.toJson(_currencies));
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.err.println(e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("{\"Error\":\"DB error\"}");
+            resp.getWriter().write("{\"Error\":\"база данных недоступна\"}");
         }
 
     }

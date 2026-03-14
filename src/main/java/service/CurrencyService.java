@@ -25,9 +25,26 @@ public class CurrencyService {
         else throw new CurrencyAlreadyExistsException("Такая валюта уже существует");
     }
 
+    public Currency findCurrency(String code) throws SQLException {
+        boolean isFound = _currencyDao.findCurrency(code);
+        if(isFound){
+            Currency currency = _currencyDao.getCurrencyByCode(code);
+            return currency;
+        }
+        else throw new CurrencyNotFoundException("Валюта не найдена");
+    }
+
+    // на будущее сделать отдельный пакет для всех ошибок и ловить их там
     public static class CurrencyAlreadyExistsException extends RuntimeException {
         public CurrencyAlreadyExistsException(String message) {
             super(message);
         }
     }
+
+    public static class CurrencyNotFoundException extends RuntimeException {
+        public CurrencyNotFoundException(String message) {
+            super(message);
+        }
+    }
+
 }

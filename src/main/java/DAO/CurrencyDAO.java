@@ -64,4 +64,27 @@ public class CurrencyDAO {
 
    }
 
+
+   public Currency getCurrencyByCode(String code){
+       try(Connection con = Connect.getConnect()){
+           PreparedStatement statement = con.prepareStatement("SELECT * FROM currencies WHERE Code = ?");
+           statement.setString(1,code);
+           ResultSet rs = statement.executeQuery();
+           if(rs.next()){
+               // проверка
+               int _id = rs.getInt(1);
+               String _name = rs.getString(2);
+               String _code = rs.getString(3);
+               String _sign = rs.getString(4);
+               Currency cur = new Currency(_id, _name,code,_sign);
+               return cur;
+           }
+           else{
+               throw new RuntimeException("Валюта не найдена");
+           }
+       } catch (SQLException e) {
+           throw new RuntimeException(e);
+       }
+   }
+
 }
