@@ -3,15 +3,13 @@ package DAO;
 import model.Currency;
 import model.ExchangeRate;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class ExchangeRatesDAO {
+
     public List<ExchangeRate> getAllExchangeRates(){
         try(Connection connection = Connect.getConnect()){
             List<ExchangeRate> rates = new ArrayList<>();
@@ -61,4 +59,36 @@ public class ExchangeRatesDAO {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean findExchangeRatesPair(int baseCurrencyID, int targetCurrencyID)throws SQLException {
+        try(Connection connection = Connect.getConnect()){
+            PreparedStatement statement = connection.prepareStatement("select * from exchange_rates where " +
+                    "BaseCurrencyID=? and TargetCurrencyID=?");
+            statement.setString(1,String.valueOf(baseCurrencyID));
+            statement.setString(2,String.valueOf(targetCurrencyID));
+            ResultSet set = statement.executeQuery();
+            return set.next();
+        }
+    }
+
+    public int addNewExchangeRate(int baseCurrencyID, int targetCurrencyID, double rate)throws SQLException{
+        try(Connection connection = Connect.getConnect()){
+            PreparedStatement statement = connection.prepareStatement("insert into exchange_rates(BaseCurrencyID," +
+                    "TargetCurrencyID,Rate) values(?,?,?)",Statement.RETURN_GENERATED_KEYS);
+            statement.setInt(1,baseCurrencyID);
+            statement.setInt(2,targetCurrencyID);
+            statement.setDouble(3,rate);
+            int rows = statement.executeUpdate();
+            if(rows ==1) {
+                ResultSet rs = statement.getGeneratedKeys();
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    return id;
+                }
+                else throw new RuntimeException("не забрал id");
+            }
+            else throw new RuntimeException("не смог добавить");
+        }
+    }
+
 }

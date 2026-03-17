@@ -12,8 +12,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Currency;
 import java.util.List;
-
-
+import servlet.CurrenciesServlet.BadRequestException;
+import service.ExchangeRatesService.ExchangeRateAlreadyExistsException;
+import service.CurrencyService.CurrencyNotFoundException;
 
 import com.google.gson.Gson;
 import service.ExchangeRatesService;
@@ -43,5 +44,29 @@ public class ExchangeRatesServlet extends HttpServlet{
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)throws IOException{
         resp.setContentType("application/json;charset=UTF-8");
+        try{
+            String baseCurrency = req.getParameter("baseCurrencyCode");
+            String targetCurrency = req.getParameter("targetCurrencyCode");
+            String s_rate = req.getParameter("rate");
+            if(baseCurrency.trim().isEmpty() || targetCurrency.trim().isEmpty() || s_rate.trim().isEmpty()){
+                throw new BadRequestException("Отсутствует нужное поле формы");
+            }
+            double rate = Double.parseDouble(s_rate);
+            ExchangeRate newRate = _service.addNewExchangeRate(baseCurrency,targetCurrency,rate);
+            resp.getWriter().write(gson.toJson(newRate));
+
+        } catch (BadRequestException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(gson.toJson("{\"Error\":"+e.getMessage()+"\"}"));
+        } catch (SQLException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().write(gson.toJson("{\"Error\":"+e.getMessage()+"\"}"));
+        } catch (ExchangeRateAlreadyExistsException e){
+            resp.setStatus(HttpServletResponse.SC_CONFLICT);
+            resp.getWriter().write(gson.toJson("{\"Error\":Валютная пара с таким кодом уже существует\"}"));
+        } catch(CurrencyNotFoundException e){
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.getWriter().write(gson.toJson("{\"Error\":"+e.getMessage()+"\"}"));
+        }
     }
 }

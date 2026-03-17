@@ -37,7 +37,6 @@ public class CurrenciesServlet extends HttpServlet{//контроллер
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)throws IOException{
         resp.setContentType("application/json;charset=UTF-8");
         try{
-            //сделать проверку параметров
             String name = req.getParameter("name");
             String code = req.getParameter("code");
             String sign = req.getParameter("sign");
@@ -66,7 +65,7 @@ public class CurrenciesServlet extends HttpServlet{//контроллер
     }
 
 
-    private static class BadRequestException extends RuntimeException {
+    public static class BadRequestException extends RuntimeException {
         public BadRequestException(String message) {
             super(message);
         }
