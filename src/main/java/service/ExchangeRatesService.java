@@ -49,8 +49,42 @@ public class ExchangeRatesService {
     }
 
 
+    public ExchangeRate findExchangeRatePairByCode(String baseCode, String targetCode) throws SQLException {
+        boolean isFoundBase = _cdao.findCurrency(baseCode);
+        if(!isFoundBase){
+            throw new CurrencyNotFoundException("Базовая валюта не найдена в бд");
+        }
+
+        boolean isFoundTarget = _cdao.findCurrency(targetCode);
+        if(!isFoundTarget){
+            throw new CurrencyNotFoundException("Целевая валюта не найдена в бд");
+        }
+
+        Currency baseCurrency = _cdao.getCurrencyByCode(baseCode);
+        int baseCurrencyID = baseCurrency.get_id();
+
+        Currency targetCurrency = _cdao.getCurrencyByCode(targetCode);
+        int targetCurrencyID = targetCurrency.get_id();
+
+        boolean isFoundPair = _dao.findExchangeRatesPair(baseCurrencyID, targetCurrencyID);
+        if(!isFoundPair){
+            throw new ExchangeRateNotFoundException("Курс обмена не найден");
+        }
+
+        ExchangeRate rate = _dao.receiveExchangeRatePair(baseCurrency,targetCurrency);
+
+        return rate;
+    }
+
+
     public static class ExchangeRateAlreadyExistsException extends RuntimeException{
         public ExchangeRateAlreadyExistsException(String message){
+            super(message);
+        }
+    }
+
+    public static class ExchangeRateNotFoundException extends RuntimeException {
+        public ExchangeRateNotFoundException(String message) {
             super(message);
         }
     }

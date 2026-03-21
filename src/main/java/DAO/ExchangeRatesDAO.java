@@ -91,4 +91,22 @@ public class ExchangeRatesDAO {
         }
     }
 
+
+    public ExchangeRate receiveExchangeRatePair(Currency baseCurrency, Currency targetCurrency) throws SQLException {
+        try(Connection connection = Connect.getConnect()){
+            PreparedStatement statement = connection.prepareStatement
+                    ("select * from exchange_rates where BaseCurrencyID=? and TargetCurrencyID=?");
+            statement.setInt(1,baseCurrency.get_id());
+            statement.setInt(2,targetCurrency.get_id());
+            ResultSet set = statement.executeQuery();
+            ExchangeRate newRate = null;
+            while (set.next()){
+                int id = set.getInt(1);
+                double rate = set.getDouble(4);
+                newRate =  new ExchangeRate(id,baseCurrency,targetCurrency,rate);
+            }
+            return newRate;
+        }
+    }
+
 }
