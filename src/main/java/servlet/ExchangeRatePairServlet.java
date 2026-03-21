@@ -54,4 +54,43 @@ public class ExchangeRatePairServlet extends HttpServlet {
             }
         }
     }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String methodOverride = request.getHeader("X-HTTP-Method-Override");
+        if ("PATCH".equalsIgnoreCase(methodOverride)) {
+            doPatch(request, response);
+        }
+    }
+    private void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String pathInfo = req.getPathInfo();
+        resp.setContentType("application/json;charset=UTF-8");
+        if (pathInfo == null || pathInfo.equals("/")) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("Нет кода валюты");
+        }
+        else{
+            try {
+                String pair = pathInfo.substring(1);
+                String baseCurrencyCode = pair.substring(0, 3);
+                String targetCurrencyCode = pair.substring(3, 6);
+                double newRate = Double.parseDouble(req.getParameter("rate"));
+
+                ExchangeRate rate = _service.UpdateExchangeRate(baseCurrencyCode,targetCurrencyCode, newRate);
+                resp.getWriter().write(gson.toJson(rate));
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.getWriter().write("{\"Error\":\"база данных недоступна\"}");
+            }
+            catch (CurrencyNotFoundException e){
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("Валюта не найдена");
+            }
+            catch (ExchangeRatesService.ExchangeRateNotFoundException e){
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write("Обменный курс не найден");
+            }
+        }
+    }
 }

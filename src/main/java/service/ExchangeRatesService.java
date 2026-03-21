@@ -6,8 +6,9 @@ import model.Currency;
 import model.ExchangeRate;
 
 import java.sql.SQLException;
-import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import service.CurrencyService.CurrencyNotFoundException;
 public class ExchangeRatesService {
@@ -22,14 +23,9 @@ public class ExchangeRatesService {
 
     public ExchangeRate addNewExchangeRate(String baseCurrencyCode,
                                            String targetCurrencyCode, double rate) throws SQLException {
-        boolean isFoundBase = _cdao.findCurrency(baseCurrencyCode);
-        if(!isFoundBase){
-            throw new CurrencyNotFoundException("Базовая валюта не найдена в бд");
-        }
-
-        boolean isFoundTarget = _cdao.findCurrency(targetCurrencyCode);
-        if(!isFoundTarget){
-            throw new CurrencyNotFoundException("Целевая валюта не найдена в бд");
+        boolean CurrenciesAreFound = CurrenciesAreFound(baseCurrencyCode,targetCurrencyCode);
+        if(!CurrenciesAreFound){
+            throw new CurrencyNotFoundException("Не найдена одна из валют");
         }
 
         Currency baseCurrency = _cdao.getCurrencyByCode(baseCurrencyCode);
@@ -38,8 +34,8 @@ public class ExchangeRatesService {
         Currency targetCurrency = _cdao.getCurrencyByCode(targetCurrencyCode);
         int targetCurrencyID = targetCurrency.get_id();
 
-        boolean isFoundPair = _dao.findExchangeRatesPair(baseCurrencyID, targetCurrencyID);
-        if(isFoundPair){
+        int isFoundPair = _dao.findExchangeRatesPair(baseCurrencyID, targetCurrencyID);
+        if(isFoundPair!=-1){
             throw new ExchangeRateAlreadyExistsException("Курс обмена уже существует");
         }
 
@@ -50,6 +46,51 @@ public class ExchangeRatesService {
 
 
     public ExchangeRate findExchangeRatePairByCode(String baseCode, String targetCode) throws SQLException {
+        boolean CurrenciesAreFound = CurrenciesAreFound(baseCode,targetCode);
+        if(!CurrenciesAreFound){
+            throw new CurrencyNotFoundException("Не найдена одна из валют");
+        }
+
+        List<Integer> ids = getCurrenciesID(baseCode,targetCode);
+        Currency baseCurrency = _cdao.getCurrencyByCode(baseCode);
+        int baseCurrencyID = ids.get(0);
+
+        Currency targetCurrency = _cdao.getCurrencyByCode(targetCode);
+        int targetCurrencyID = ids.get(1);
+
+        int isFoundPair = _dao.findExchangeRatesPair(baseCurrencyID, targetCurrencyID);
+        if(isFoundPair==-1){
+            throw new ExchangeRateNotFoundException("Курс обмена не найден");
+        }
+
+        ExchangeRate rate = _dao.receiveExchangeRatePair(baseCurrency,targetCurrency);
+
+        return rate;
+    }
+
+    public ExchangeRate UpdateExchangeRate(String baseCode, String targetCode, double rate) throws SQLException {
+        boolean CurrenciesAreFound = CurrenciesAreFound(baseCode,targetCode);
+        if(!CurrenciesAreFound){
+            throw new CurrencyNotFoundException("Не найдена одна из валют");
+        }
+
+        List<Integer> ids = getCurrenciesID(baseCode,targetCode);
+        Currency baseCurrency = _cdao.getCurrencyByCode(baseCode);
+        int baseCurrencyID = ids.get(0);
+
+        Currency targetCurrency = _cdao.getCurrencyByCode(targetCode);
+        int targetCurrencyID = ids.get(1);
+
+        int isFoundPair = _dao.findExchangeRatesPair(baseCurrencyID, targetCurrencyID);
+        if(isFoundPair==-1){
+            throw new ExchangeRateNotFoundException("Курс обмена не найден");
+        }
+
+        ExchangeRate newRate = _dao.updateExchangeRatePair(baseCurrency,targetCurrency, isFoundPair, rate);
+        return newRate;
+    }
+
+    private boolean CurrenciesAreFound(String baseCode, String targetCode) throws SQLException {
         boolean isFoundBase = _cdao.findCurrency(baseCode);
         if(!isFoundBase){
             throw new CurrencyNotFoundException("Базовая валюта не найдена в бд");
@@ -59,23 +100,20 @@ public class ExchangeRatesService {
         if(!isFoundTarget){
             throw new CurrencyNotFoundException("Целевая валюта не найдена в бд");
         }
+        return true;
+    }
 
+    private List<Integer> getCurrenciesID(String baseCode, String targetCode){
         Currency baseCurrency = _cdao.getCurrencyByCode(baseCode);
         int baseCurrencyID = baseCurrency.get_id();
 
         Currency targetCurrency = _cdao.getCurrencyByCode(targetCode);
         int targetCurrencyID = targetCurrency.get_id();
-
-        boolean isFoundPair = _dao.findExchangeRatesPair(baseCurrencyID, targetCurrencyID);
-        if(!isFoundPair){
-            throw new ExchangeRateNotFoundException("Курс обмена не найден");
-        }
-
-        ExchangeRate rate = _dao.receiveExchangeRatePair(baseCurrency,targetCurrency);
-
-        return rate;
+        List<Integer> ids = new ArrayList<>(2);
+        ids.add(baseCurrencyID);
+        ids.add(targetCurrencyID);
+        return Collections.unmodifiableList(ids);
     }
-
 
     public static class ExchangeRateAlreadyExistsException extends RuntimeException{
         public ExchangeRateAlreadyExistsException(String message){

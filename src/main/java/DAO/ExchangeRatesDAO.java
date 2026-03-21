@@ -60,14 +60,18 @@ public class ExchangeRatesDAO {
         }
     }
 
-    public boolean findExchangeRatesPair(int baseCurrencyID, int targetCurrencyID)throws SQLException {
+    public int findExchangeRatesPair(int baseCurrencyID, int targetCurrencyID)throws SQLException {
         try(Connection connection = Connect.getConnect()){
             PreparedStatement statement = connection.prepareStatement("select * from exchange_rates where " +
                     "BaseCurrencyID=? and TargetCurrencyID=?");
             statement.setString(1,String.valueOf(baseCurrencyID));
             statement.setString(2,String.valueOf(targetCurrencyID));
             ResultSet set = statement.executeQuery();
-            return set.next();
+            if(set.next()){
+                int id = set.getInt(1);
+                return id;
+            }
+            return -1;
         }
     }
 
@@ -109,4 +113,20 @@ public class ExchangeRatesDAO {
         }
     }
 
+    public ExchangeRate updateExchangeRatePair(Currency baseCurrency,Currency targetCurrency,int id, double rate)
+            throws SQLException{
+        try(Connection connection = Connect.getConnect()){
+            PreparedStatement statement = connection.prepareStatement
+                    ("update exchange_rates set Rate=? where ID=?");
+            statement.setDouble(1,rate);
+            statement.setInt(2,id);
+            int updatedRows = statement.executeUpdate();
+
+            if (updatedRows > 0) {
+                return new ExchangeRate(id, baseCurrency, targetCurrency, rate);
+            }
+
+            return null;
+        }
+    }
 }
