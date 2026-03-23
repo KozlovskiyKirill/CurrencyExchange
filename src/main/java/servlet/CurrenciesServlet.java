@@ -1,4 +1,6 @@
 package servlet;
+import exceptions.BadRequestException;
+import exceptions.CurrencyAlreadyExistsException;
 import model.Currency;
 import service.CurrencyService;
 
@@ -53,7 +55,7 @@ public class CurrenciesServlet extends HttpServlet{
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write("{\"Error\":"+e.getMessage()+"\"}");
         }
-        catch (CurrencyService.CurrencyAlreadyExistsException e){
+        catch (CurrencyAlreadyExistsException e){
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
             resp.getWriter().write("{\"Message\":\"Валюта с таким кодом уже существует\"}");
         }
@@ -65,9 +67,4 @@ public class CurrenciesServlet extends HttpServlet{
     }
 
 
-    public static class BadRequestException extends RuntimeException {
-        public BadRequestException(String message) {
-            super(message);
-        }
-    }
 }

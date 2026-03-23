@@ -2,6 +2,9 @@ package service;
 
 import DAO.CurrencyDAO;
 import DAO.ExchangeRatesDAO;
+import exceptions.CurrencyNotFoundException;
+import exceptions.ExchangeRateAlreadyExistsException;
+import exceptions.ExchangeRateNotFoundException;
 import model.Currency;
 import model.ExchangeCurrency;
 import model.ExchangeRate;
@@ -11,7 +14,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import service.CurrencyService.CurrencyNotFoundException;
 public class ExchangeRatesService {
     private ExchangeRatesDAO _dao = new ExchangeRatesDAO();
     private CurrencyDAO _cdao = new CurrencyDAO();
@@ -170,17 +172,5 @@ public class ExchangeRatesService {
         ExchangeCurrency exchange = new ExchangeCurrency(baseCurrency,targetCurrency, rate.getRate(),amount,
                 convertedAmount);
         return exchange;
-    }
-
-    public static class ExchangeRateAlreadyExistsException extends RuntimeException{
-        public ExchangeRateAlreadyExistsException(String message){
-            super(message);
-        }
-    }
-
-    public static class ExchangeRateNotFoundException extends RuntimeException {
-        public ExchangeRateNotFoundException(String message) {
-            super(message);
-        }
     }
 }

@@ -1,4 +1,6 @@
 package servlet;
+import exceptions.CurrencyNotFoundException;
+import exceptions.ExchangeRateNotFoundException;
 import model.Currency;
 import model.ExchangeRate;
 import org.apache.commons.lang3.tuple.Pair;
@@ -11,9 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import servlet.CurrenciesServlet.BadRequestException;
-import service.ExchangeRatesService.ExchangeRateAlreadyExistsException;
-import service.CurrencyService.CurrencyNotFoundException;
 
 import com.google.gson.Gson;
 import service.ExchangeRatesService;
@@ -48,7 +47,7 @@ public class ExchangeRatePairServlet extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 resp.getWriter().write("Валюта не найдена");
             }
-            catch (ExchangeRatesService.ExchangeRateNotFoundException e){
+            catch (ExchangeRateNotFoundException e){
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 resp.getWriter().write("Обменный курс не найден");
             }
@@ -91,7 +90,7 @@ public class ExchangeRatePairServlet extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 resp.getWriter().write("Валюта не найдена");
             }
-            catch (ExchangeRatesService.ExchangeRateNotFoundException e){
+            catch (ExchangeRateNotFoundException e){
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 resp.getWriter().write("Обменный курс не найден");
             }

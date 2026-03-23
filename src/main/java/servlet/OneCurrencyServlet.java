@@ -1,5 +1,6 @@
 package servlet;
 
+import exceptions.CurrencyNotFoundException;
 import service.CurrencyService;
 
 import javax.servlet.annotation.WebServlet;
@@ -11,7 +12,6 @@ import java.sql.SQLException;
 import model.Currency;
 
 import com.google.gson.Gson;
-import service.CurrencyService.CurrencyNotFoundException;
 
 @WebServlet("/currencies/*")
 public class OneCurrencyServlet extends HttpServlet {

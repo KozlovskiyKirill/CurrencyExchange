@@ -1,5 +1,8 @@
 package servlet;
 
+import exceptions.BadRequestException;
+import exceptions.CurrencyNotFoundException;
+import exceptions.ExchangeRateAlreadyExistsException;
 import model.ExchangeRate;
 import org.apache.commons.lang3.tuple.Pair;
 import service.CurrencyService;
@@ -12,9 +15,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Currency;
 import java.util.List;
-import servlet.CurrenciesServlet.BadRequestException;
-import service.ExchangeRatesService.ExchangeRateAlreadyExistsException;
-import service.CurrencyService.CurrencyNotFoundException;
 
 import com.google.gson.Gson;
 import service.ExchangeRatesService;

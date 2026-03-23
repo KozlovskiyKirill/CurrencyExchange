@@ -1,6 +1,8 @@
 package service;
 
 import DAO.CurrencyDAO;
+import exceptions.CurrencyAlreadyExistsException;
+import exceptions.CurrencyNotFoundException;
 import model.Currency;
 
 import java.sql.SQLException;
@@ -33,18 +35,4 @@ public class CurrencyService {
         }
         else throw new CurrencyNotFoundException("Валюта не найдена");
     }
-
-    // на будущее сделать отдельный пакет для всех ошибок и ловить их там
-    public static class CurrencyAlreadyExistsException extends RuntimeException {
-        public CurrencyAlreadyExistsException(String message) {
-            super(message);
-        }
-    }
-
-    public static class CurrencyNotFoundException extends RuntimeException {
-        public CurrencyNotFoundException(String message) {
-            super(message);
-        }
-    }
-
 }
