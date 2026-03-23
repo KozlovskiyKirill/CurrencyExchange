@@ -1,20 +1,21 @@
 package servlet;
 
+import dto.DtoMapper;
+import dto.ExchangeRateResponseDto;
 import exceptions.BadRequestException;
 import exceptions.CurrencyNotFoundException;
 import exceptions.ExchangeRateAlreadyExistsException;
 import model.ExchangeRate;
-import org.apache.commons.lang3.tuple.Pair;
-import service.CurrencyService;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.Currency;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import service.ExchangeRatesService;
@@ -27,10 +28,12 @@ public class ExchangeRatesServlet extends HttpServlet{
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException{
-        resp.setContentType("application/json;charset=UTF-8");
         try{
             List<ExchangeRate> rates = _service.getAllExchangeRates();
-            resp.getWriter().write(gson.toJson(rates));
+            List<ExchangeRateResponseDto> ratesDto = rates.stream()
+                    .map(DtoMapper::toExchangeRateDto)
+                    .collect(Collectors.toList());
+            resp.getWriter().write(gson.toJson(ratesDto));
 
         }
         catch (Exception e){
@@ -43,7 +46,6 @@ public class ExchangeRatesServlet extends HttpServlet{
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)throws IOException{
-        resp.setContentType("application/json;charset=UTF-8");
         try{
             String baseCurrency = req.getParameter("baseCurrencyCode");
             String targetCurrency = req.getParameter("targetCurrencyCode");
@@ -51,9 +53,10 @@ public class ExchangeRatesServlet extends HttpServlet{
             if(baseCurrency.trim().isEmpty() || targetCurrency.trim().isEmpty() || s_rate.trim().isEmpty()){
                 throw new BadRequestException("Отсутствует нужное поле формы");
             }
-            double rate = Double.parseDouble(s_rate);
+            BigDecimal rate = new BigDecimal(s_rate);
             ExchangeRate newRate = _service.addNewExchangeRate(baseCurrency,targetCurrency,rate);
-            resp.getWriter().write(gson.toJson(newRate));
+            ExchangeRateResponseDto newRateDto = DtoMapper.toExchangeRateDto(newRate);
+            resp.getWriter().write(gson.toJson(newRateDto));
 
         } catch (BadRequestException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);

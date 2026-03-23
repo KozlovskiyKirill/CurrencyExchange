@@ -3,6 +3,7 @@ package DAO;
 import model.Currency;
 import model.ExchangeRate;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,7 +11,7 @@ import java.util.List;
 
 public class ExchangeRatesDAO {
 
-    public List<ExchangeRate> getAllExchangeRates(){
+    public List<ExchangeRate> getAllExchangeRates() throws SQLException {
         try(Connection connection = Connect.getConnect()){
             List<ExchangeRate> rates = new ArrayList<>();
             Statement statement = connection.createStatement();
@@ -49,14 +50,11 @@ public class ExchangeRatesDAO {
                 String t_code = rs.getString(8);
                 String t_sign = rs.getString(9);
                 Currency targetCurrency = new Currency(t_id,t_name,t_code,t_sign);
-                double rate = rs.getDouble(10);
+                BigDecimal rate = rs.getBigDecimal(10);
                 ExchangeRate exchangeRate = new ExchangeRate(id,baseCurrency,targetCurrency,rate);
                 rates.add(exchangeRate);
             }
             return Collections.unmodifiableList(rates);
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -75,13 +73,13 @@ public class ExchangeRatesDAO {
         }
     }
 
-    public int addNewExchangeRate(int baseCurrencyID, int targetCurrencyID, double rate)throws SQLException{
+    public int addNewExchangeRate(int baseCurrencyID, int targetCurrencyID, BigDecimal rate)throws SQLException{
         try(Connection connection = Connect.getConnect()){
             PreparedStatement statement = connection.prepareStatement("insert into exchange_rates(BaseCurrencyID," +
                     "TargetCurrencyID,Rate) values(?,?,?)",Statement.RETURN_GENERATED_KEYS);
             statement.setInt(1,baseCurrencyID);
             statement.setInt(2,targetCurrencyID);
-            statement.setDouble(3,rate);
+            statement.setBigDecimal(3,rate);
             int rows = statement.executeUpdate();
             if(rows ==1) {
                 ResultSet rs = statement.getGeneratedKeys();
@@ -89,9 +87,9 @@ public class ExchangeRatesDAO {
                     int id = rs.getInt(1);
                     return id;
                 }
-                else throw new RuntimeException("не забрал id");
+                else throw new SQLException("Failed to fetch generated key for exchange rate");
             }
-            else throw new RuntimeException("не смог добавить");
+            else throw new SQLException("Failed to insert exchange rate");
         }
     }
 
@@ -106,19 +104,19 @@ public class ExchangeRatesDAO {
             ExchangeRate newRate = null;
             while (set.next()){
                 int id = set.getInt(1);
-                double rate = set.getDouble(4);
+                BigDecimal rate = set.getBigDecimal(4);
                 newRate =  new ExchangeRate(id,baseCurrency,targetCurrency,rate);
             }
             return newRate;
         }
     }
 
-    public ExchangeRate updateExchangeRatePair(Currency baseCurrency,Currency targetCurrency,int id, double rate)
+    public ExchangeRate updateExchangeRatePair(Currency baseCurrency,Currency targetCurrency,int id, BigDecimal rate)
             throws SQLException{
         try(Connection connection = Connect.getConnect()){
             PreparedStatement statement = connection.prepareStatement
                     ("update exchange_rates set Rate=? where ID=?");
-            statement.setDouble(1,rate);
+            statement.setBigDecimal(1,rate);
             statement.setInt(2,id);
             int updatedRows = statement.executeUpdate();
 

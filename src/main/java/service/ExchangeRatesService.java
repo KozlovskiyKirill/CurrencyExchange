@@ -9,20 +9,22 @@ import model.Currency;
 import model.ExchangeCurrency;
 import model.ExchangeRate;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class ExchangeRatesService {
-    private ExchangeRatesDAO _dao = new ExchangeRatesDAO();
-    private CurrencyDAO _cdao = new CurrencyDAO();
+    private final ExchangeRatesDAO _dao = new ExchangeRatesDAO();
+    private final CurrencyDAO _cdao = new CurrencyDAO();
 
-    public List<ExchangeRate> getAllExchangeRates() {
-        List<ExchangeRate> rates = _dao.getAllExchangeRates();
-        return rates;
+    public List<ExchangeRate> getAllExchangeRates() throws SQLException {
+        return _dao.getAllExchangeRates();
     }
 
     public ExchangeRate addNewExchangeRate(String baseCurrencyCode,
-                                           String targetCurrencyCode, double rate) throws SQLException {
+                                           String targetCurrencyCode, BigDecimal rate) throws SQLException {
         Currency[] currencies = getCurrenciesPair(baseCurrencyCode, targetCurrencyCode);
         Currency baseCurrency = currencies[0];
         Currency targetCurrency = currencies[1];
@@ -46,7 +48,7 @@ public class ExchangeRatesService {
         return rate;
     }
 
-    public ExchangeRate UpdateExchangeRate(String baseCode, String targetCode, double rate) throws SQLException {
+    public ExchangeRate UpdateExchangeRate(String baseCode, String targetCode, BigDecimal rate) throws SQLException {
         Currency[] currencies = getCurrenciesPair(baseCode, targetCode);
         Currency baseCurrency = currencies[0];
         Currency targetCurrency = currencies[1];
@@ -58,7 +60,7 @@ public class ExchangeRatesService {
         return newRate;
     }
 
-    public ExchangeCurrency ExchangeCurrency(String baseCode, String targetCode, double amount) throws SQLException {
+    public ExchangeCurrency ExchangeCurrency(String baseCode, String targetCode, BigDecimal amount) throws SQLException {
         Currency[] currencies = getCurrenciesPair(baseCode, targetCode);
         Currency baseCurrency = currencies[0];
         Currency targetCurrency = currencies[1];
@@ -80,28 +82,18 @@ public class ExchangeRatesService {
         ExchangeCurrency exchange = tryExchangeThroughUSD(baseCurrency, targetCurrency, amount);
         return exchange;
     }
-    private boolean CurrenciesAreFound(String baseCode, String targetCode) throws SQLException {
-        boolean isFoundBase = _cdao.findCurrency(baseCode);
-        if(!isFoundBase){
+    private Currency[] getCurrenciesPair(String baseCode, String targetCode) throws SQLException {
+        Optional<Currency> baseCurrency = _cdao.getCurrencyByCode(baseCode);
+        if (!baseCurrency.isPresent()) {
             throw new CurrencyNotFoundException("Базовая валюта не найдена в бд");
         }
 
-        boolean isFoundTarget = _cdao.findCurrency(targetCode);
-        if(!isFoundTarget){
+        Optional<Currency> targetCurrency = _cdao.getCurrencyByCode(targetCode);
+        if (!targetCurrency.isPresent()) {
             throw new CurrencyNotFoundException("Целевая валюта не найдена в бд");
         }
-        return true;
-    }
 
-    private Currency[] getCurrenciesPair(String baseCode, String targetCode) throws SQLException {
-        boolean CurrenciesAreFound = CurrenciesAreFound(baseCode, targetCode);
-        if (!CurrenciesAreFound) {
-            throw new CurrencyNotFoundException("Не найдена одна из валют");
-        }
-
-        Currency baseCurrency = _cdao.getCurrencyByCode(baseCode);
-        Currency targetCurrency = _cdao.getCurrencyByCode(targetCode);
-        return new Currency[]{baseCurrency, targetCurrency};
+        return new Currency[]{baseCurrency.get(), targetCurrency.get()};
     }
 
     private int ensurePairExists(int baseCurrencyID, int targetCurrencyID) throws SQLException {
@@ -119,17 +111,22 @@ public class ExchangeRatesService {
         }
     }
 
-    private ExchangeCurrency tryExchangeThroughUSD(Currency baseCurrency, Currency targetCurrency, double amount)
+    private ExchangeCurrency tryExchangeThroughUSD(Currency baseCurrency, Currency targetCurrency, BigDecimal amount)
             throws SQLException {
-        Currency USD = _cdao.getCurrencyByCode("USD");
+        Optional<Currency> usdCurrency = _cdao.getCurrencyByCode("USD");
+        if (!usdCurrency.isPresent()) {
+            throw new CurrencyNotFoundException("Валюта USD не найдена в бд");
+        }
+        Currency USD = usdCurrency.get();
         int USDBase = _dao.findExchangeRatesPair(USD.get_id(), baseCurrency.get_id());
         int USDTarget = _dao.findExchangeRatesPair(USD.get_id(), targetCurrency.get_id());
         if (USDBase != -1 && USDTarget != -1) {
             ExchangeCurrency USDBASE = exchange(baseCurrency, USD, amount, true);
-            ExchangeCurrency USDTARGET = exchange(USD, targetCurrency, 1, false);
+            ExchangeCurrency USDTARGET = exchange(USD, targetCurrency, BigDecimal.ONE, false);
             ExchangeCurrency exchange = new ExchangeCurrency(baseCurrency, targetCurrency,
-                    USDTARGET.getRate(), amount / USDBASE.getRate(),
-                    USDBASE.getConvertedAmount() * USDTARGET.getConvertedAmount());
+                    USDTARGET.getRate(),
+                    amount.divide(USDBASE.getRate(), 12, RoundingMode.HALF_UP),
+                    USDBASE.getConvertedAmount().multiply(USDTARGET.getConvertedAmount()));
             return exchange;
         }
 
@@ -137,15 +134,15 @@ public class ExchangeRatesService {
     }
 
     private ExchangeCurrency exchange(Currency baseCurrency,Currency targetCurrency,
-                                      double amount, boolean isReversed)
+                                      BigDecimal amount, boolean isReversed)
             throws SQLException {
         ExchangeRate rate = _dao.receiveExchangeRatePair(baseCurrency, targetCurrency);
-        double convertedAmount = 0;
+        BigDecimal convertedAmount;
         if(!isReversed)
-            convertedAmount = rate.getRate()*amount;
+            convertedAmount = rate.getRate().multiply(amount);
 
         else
-            convertedAmount = 1/ rate.getRate()*amount;
+            convertedAmount = amount.divide(rate.getRate(), 12, RoundingMode.HALF_UP);
 
         ExchangeCurrency exchange = new ExchangeCurrency(baseCurrency,targetCurrency, rate.getRate(),amount,
                 convertedAmount);

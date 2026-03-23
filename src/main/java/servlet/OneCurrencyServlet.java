@@ -1,5 +1,7 @@
 package servlet;
 
+import dto.CurrencyResponseDto;
+import dto.DtoMapper;
 import exceptions.CurrencyNotFoundException;
 import service.CurrencyService;
 
@@ -22,7 +24,6 @@ public class OneCurrencyServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
-        resp.setContentType("application/json;charset=UTF-8");
         if (pathInfo == null || pathInfo.equals("/")) {
             // Если просто /currency без кода валюты
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -32,7 +33,8 @@ public class OneCurrencyServlet extends HttpServlet {
             try {
                 String currencyCode = pathInfo.substring(1);
                 Currency currency = _service.findCurrency(currencyCode);
-                resp.getWriter().write(gson.toJson(currency));
+                CurrencyResponseDto currencyDto = DtoMapper.toCurrencyDto(currency);
+                resp.getWriter().write(gson.toJson(currencyDto));
             } catch (SQLException e) {
                 System.err.println(e.getMessage());
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

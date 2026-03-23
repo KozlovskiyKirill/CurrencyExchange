@@ -2,6 +2,8 @@ package servlet;
 
 
 import com.google.gson.Gson;
+import dto.DtoMapper;
+import dto.ExchangeCurrencyResponseDto;
 import model.ExchangeCurrency;
 import service.ExchangeRatesService;
 
@@ -10,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @WebServlet("/exchange")
 public class ExchangeCurrencyServlet extends HttpServlet {
@@ -18,7 +21,6 @@ public class ExchangeCurrencyServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json;charset=UTF-8");
         try{
             String baseCode = req.getParameter("from");
             String targetCode = req.getParameter("to");
@@ -27,9 +29,10 @@ public class ExchangeCurrencyServlet extends HttpServlet {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 resp.getWriter().write("\"message\": \"Валюта не найдена\"");
             }
-            double amount = Double.parseDouble(sAmount);
+            BigDecimal amount = new BigDecimal(sAmount);
             ExchangeCurrency exchange = _service.ExchangeCurrency(baseCode, targetCode, amount);
-            resp.getWriter().write(gson.toJson(exchange));
+            ExchangeCurrencyResponseDto exchangeDto = DtoMapper.toExchangeCurrencyDto(exchange);
+            resp.getWriter().write(gson.toJson(exchangeDto));
         }
         catch (Exception e){
             System.err.println(e.getMessage());

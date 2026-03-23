@@ -1,14 +1,16 @@
 package model;
 
+import java.math.BigDecimal;
+
 public class ExchangeCurrency {
     private final Currency _baseCurrency;
     private final Currency _targetCurrency;
-    private final double _rate;
-    private double _amount;
-    private double _convertedAmount;
+    private final BigDecimal _rate;
+    private final BigDecimal _amount;
+    private final BigDecimal _convertedAmount;
 
-    public ExchangeCurrency(Currency baseCurrency, Currency targetCurrency, double rate, double amount,
-                            double convertedAmount) {
+    public ExchangeCurrency(Currency baseCurrency, Currency targetCurrency, BigDecimal rate, BigDecimal amount,
+                            BigDecimal convertedAmount) {
         _baseCurrency = baseCurrency;
         _targetCurrency = targetCurrency;
         _rate = rate;
@@ -26,13 +28,13 @@ public class ExchangeCurrency {
     }
 
 
-    public double getRate() { return _rate; }
+    public BigDecimal getRate() { return _rate; }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return _amount;
     }
 
-    public double getConvertedAmount() {
+    public BigDecimal getConvertedAmount() {
         return _convertedAmount;
     }
 }

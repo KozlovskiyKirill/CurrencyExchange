@@ -7,15 +7,14 @@ import model.Currency;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class CurrencyService {
-    CurrencyDAO _currencyDao = new CurrencyDAO();
+    private final CurrencyDAO _currencyDao = new CurrencyDAO();
 
 
     public List<Currency> getAllCurrencies() throws SQLException {
-        System.out.print("Зашли в сервис");
-        List<Currency> currency = _currencyDao.getAllCurrencies();
-        return currency;
+        return _currencyDao.getAllCurrencies();
     }
 
     public Currency addCurrency(String name, String code, String sign) throws SQLException {
@@ -28,11 +27,10 @@ public class CurrencyService {
     }
 
     public Currency findCurrency(String code) throws SQLException {
-        boolean isFound = _currencyDao.findCurrency(code);
-        if(isFound){
-            Currency currency = _currencyDao.getCurrencyByCode(code);
-            return currency;
+        Optional<Currency> currency = _currencyDao.getCurrencyByCode(code);
+        if(currency.isPresent()){
+            return currency.get();
         }
-        else throw new CurrencyNotFoundException("Валюта не найдена");
+        throw new CurrencyNotFoundException("Валюта не найдена");
     }
 }

@@ -1,4 +1,6 @@
 package servlet;
+import dto.CurrencyResponseDto;
+import dto.DtoMapper;
 import exceptions.BadRequestException;
 import exceptions.CurrencyAlreadyExistsException;
 import model.Currency;
@@ -11,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 import com.google.gson.Gson;
 
 @WebServlet("/currencies")
@@ -20,12 +23,14 @@ public class CurrenciesServlet extends HttpServlet{
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json;charset=UTF-8");
         System.out.println("In servlet");
         try {
             System.out.print("Зашли в сервлет, идем в сервис");
             List<Currency> _currencies = _service.getAllCurrencies();
-            resp.getWriter().write(gson.toJson(_currencies));
+            List<CurrencyResponseDto> currenciesDto = _currencies.stream()
+                    .map(DtoMapper::toCurrencyDto)
+                    .collect(Collectors.toList());
+            resp.getWriter().write(gson.toJson(currenciesDto));
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -37,7 +42,6 @@ public class CurrenciesServlet extends HttpServlet{
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)throws IOException{
-        resp.setContentType("application/json;charset=UTF-8");
         try{
             String name = req.getParameter("name");
             String code = req.getParameter("code");
@@ -48,7 +52,8 @@ public class CurrenciesServlet extends HttpServlet{
                 throw new BadRequestException("Отсутствует нужное поле формы");
             }
             Currency currency = _service.addCurrency(name,code,sign);
-            resp.getWriter().write(gson.toJson(currency));
+            CurrencyResponseDto currencyDto = DtoMapper.toCurrencyDto(currency);
+            resp.getWriter().write(gson.toJson(currencyDto));
 
         }
         catch (BadRequestException e){
