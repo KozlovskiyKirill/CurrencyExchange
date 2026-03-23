@@ -12,7 +12,7 @@ import java.util.List;
 import com.google.gson.Gson;
 
 @WebServlet("/currencies")
-public class CurrenciesServlet extends HttpServlet{//контроллер
+public class CurrenciesServlet extends HttpServlet{
     private final CurrencyService _service = new CurrencyService();
     private final Gson gson = new Gson();
 

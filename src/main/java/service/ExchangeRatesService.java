@@ -3,6 +3,7 @@ package service;
 import DAO.CurrencyDAO;
 import DAO.ExchangeRatesDAO;
 import model.Currency;
+import model.ExchangeCurrency;
 import model.ExchangeRate;
 
 import java.sql.SQLException;
@@ -90,6 +91,46 @@ public class ExchangeRatesService {
         return newRate;
     }
 
+    public ExchangeCurrency ExchangeCurrency(String baseCode, String targetCode, double amount) throws SQLException {
+        boolean CurrenciesAreFound = CurrenciesAreFound(baseCode,targetCode);
+        if(!CurrenciesAreFound){
+            throw new CurrencyNotFoundException("Не найдена одна из валют");
+        }
+        List<Integer> ids = getCurrenciesID(baseCode,targetCode);
+        Currency baseCurrency = _cdao.getCurrencyByCode(baseCode);
+        int baseCurrencyID = ids.get(0);
+
+        Currency targetCurrency = _cdao.getCurrencyByCode(targetCode);
+        int targetCurrencyID = ids.get(1);
+
+        // найден прямой курс
+        int isFoundPair = _dao.findExchangeRatesPair(baseCurrencyID, targetCurrencyID);
+        if(isFoundPair!=-1){
+            ExchangeCurrency exchange = exchange(baseCurrency,targetCurrency,isFoundPair,amount, false);
+            return exchange;
+        }
+
+        //найден обратный курс
+        int isFoundReversedPair = _dao.findExchangeRatesPair(targetCurrencyID, baseCurrencyID);
+        if(isFoundReversedPair!=-1){
+            ExchangeCurrency exchange = exchange(targetCurrency,baseCurrency,isFoundPair,amount, true);
+            return exchange;
+        }
+
+        Currency USD = _cdao.getCurrencyByCode("USD");
+        int USDBase = _dao.findExchangeRatesPair(USD.get_id(),baseCurrency.get_id());
+        int USDTarget = _dao.findExchangeRatesPair(USD.get_id(),targetCurrency.get_id());
+        // есть обмен через доллар 2 валют
+        if(USDBase!=-1 && USDTarget!=-1){
+            ExchangeCurrency USDBASE = exchange(baseCurrency,USD,isFoundPair,amount, true);
+            ExchangeCurrency USDTARGET = exchange(USD,targetCurrency,isFoundPair,1, false);
+            ExchangeCurrency exchange = new ExchangeCurrency(baseCurrency,targetCurrency,
+                    USDTARGET.getRate(),amount/USDBASE.getRate(),
+                    USDBASE.getConvertedAmount()*USDTARGET.getConvertedAmount());
+            return exchange;
+        }
+        return null;
+    }
     private boolean CurrenciesAreFound(String baseCode, String targetCode) throws SQLException {
         boolean isFoundBase = _cdao.findCurrency(baseCode);
         if(!isFoundBase){
@@ -113,6 +154,22 @@ public class ExchangeRatesService {
         ids.add(baseCurrencyID);
         ids.add(targetCurrencyID);
         return Collections.unmodifiableList(ids);
+    }
+
+    private ExchangeCurrency exchange(Currency baseCurrency,Currency targetCurrency, int isFoundPair,
+                                      double amount, boolean isReversed)
+            throws SQLException {
+        ExchangeRate rate = _dao.receiveExchangeRatePair(baseCurrency, targetCurrency);
+        double convertedAmount = 0;
+        if(!isReversed)
+            convertedAmount = rate.getRate()*amount;
+
+        else
+            convertedAmount = 1/ rate.getRate()*amount;
+
+        ExchangeCurrency exchange = new ExchangeCurrency(baseCurrency,targetCurrency, rate.getRate(),amount,
+                convertedAmount);
+        return exchange;
     }
 
     public static class ExchangeRateAlreadyExistsException extends RuntimeException{

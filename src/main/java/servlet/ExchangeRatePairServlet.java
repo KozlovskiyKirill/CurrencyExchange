@@ -74,8 +74,12 @@ public class ExchangeRatePairServlet extends HttpServlet {
                 String pair = pathInfo.substring(1);
                 String baseCurrencyCode = pair.substring(0, 3);
                 String targetCurrencyCode = pair.substring(3, 6);
-                double newRate = Double.parseDouble(req.getParameter("rate"));
-
+                String SRate = req.getParameter("rate");
+                if (SRate.trim().isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    resp.getWriter().write("нет обменного курса");
+                }
+                double newRate = Double.parseDouble(SRate);
                 ExchangeRate rate = _service.UpdateExchangeRate(baseCurrencyCode,targetCurrencyCode, newRate);
                 resp.getWriter().write(gson.toJson(rate));
             } catch (SQLException e) {

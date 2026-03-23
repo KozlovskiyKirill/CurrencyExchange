@@ -3,14 +3,4 @@
 
     <display-name>CurrencyExchange</display-name>
 
-    <servlet>
-        <servlet-name>ExchangeServlet</servlet-name>
-        <servlet-class>servlet.ExchangeServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>ExchangeServlet</servlet-name>
-        <url-pattern>/exchange</url-pattern>
-    </servlet-mapping>
-
 </web-app>
