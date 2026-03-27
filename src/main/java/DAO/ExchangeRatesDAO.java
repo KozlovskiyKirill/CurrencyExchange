@@ -16,19 +16,19 @@ public class ExchangeRatesDAO {
             List<ExchangeRate> rates = new ArrayList<>();
             Statement statement = connection.createStatement();
             ResultSet rs = statement.executeQuery("select\n" +
-                    "# id записи курса обмена\n" +
+
                     "er.id,\n" +
-                    "# базовая валюта\n" +
+
                     "bc.ID,\n" +
                     "bc.FullName,\n" +
                     "bc.code,\n" +
                     "bc.Sign,\n" +
-                    "# целевая валюта\n" +
+
                     "tc.ID,\n" +
                     "tc.FullName,\n" +
                     "tc.code,\n" +
                     "tc.Sign,\n" +
-                    "# курс\n" +
+
                     "er.rate\n" +
                     "\n" +
                     "from exchange_rates er\n" +

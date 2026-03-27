@@ -5,6 +5,17 @@ import java.util.List;
 
  class Connect {
      private static String url;
+
+     static {
+         try {
+             Class<?> clazz = Class.forName("org.sqlite.JDBC");
+             Driver driver = (Driver) clazz.getDeclaredConstructor().newInstance();
+             DriverManager.registerDriver(driver);
+             System.out.println("SQLITE DRIVER REGISTERED");
+         } catch (Exception e) {
+             throw new RuntimeException("Failed to register SQLite driver", e);
+         }
+     }
      static void init(String dbAbsolutePath) {
          url = "jdbc:sqlite:" + dbAbsolutePath;
          System.out.println("SQLITE URL = " + url);
