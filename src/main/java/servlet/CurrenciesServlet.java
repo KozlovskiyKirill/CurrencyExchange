@@ -23,9 +23,7 @@ public class CurrenciesServlet extends HttpServlet{
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        System.out.println("In servlet");
         try {
-            System.out.print("Зашли в сервлет, идем в сервис");
             List<Currency> _currencies = _service.getAllCurrencies();
             List<CurrencyResponseDto> currenciesDto = _currencies.stream()
                     .map(DtoMapper::toCurrencyDto)
@@ -33,11 +31,9 @@ public class CurrenciesServlet extends HttpServlet{
             resp.getWriter().write(gson.toJson(currenciesDto));
 
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("{\"Error\":\"база данных недоступна\"}");
+            resp.getWriter().write("{\"message\":\"база данных недоступна\"}");
         }
-
     }
 
     @Override
@@ -53,23 +49,21 @@ public class CurrenciesServlet extends HttpServlet{
             }
             Currency currency = _service.addCurrency(name,code,sign);
             CurrencyResponseDto currencyDto = DtoMapper.toCurrencyDto(currency);
+            resp.setStatus(HttpServletResponse.SC_CREATED);
             resp.getWriter().write(gson.toJson(currencyDto));
 
         }
         catch (BadRequestException e){
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("{\"Error\":"+e.getMessage()+"\"}");
+            resp.getWriter().write("{\"message\":\"Отсутствует нужное поле формы\"}");
         }
         catch (CurrencyAlreadyExistsException e){
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
-            resp.getWriter().write("{\"Message\":\"Валюта с таким кодом уже существует\"}");
+            resp.getWriter().write("{\"message\":\"Валюта с таким кодом уже существует\"}");
         }
         catch (SQLException e) {
-            System.err.println(e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("{\"Error\":\"база данных недоступна\"}");
+            resp.getWriter().write("{\"message\":\"база данных недоступна\"}");
         }
     }
-
-
 }

@@ -1,7 +1,7 @@
 package service;
 
-import DAO.CurrencyDAO;
-import DAO.ExchangeRatesDAO;
+import dao.CurrencyDAO;
+import dao.ExchangeRatesDAO;
 import exceptions.CurrencyNotFoundException;
 import exceptions.ExchangeRateAlreadyExistsException;
 import exceptions.ExchangeRateNotFoundException;

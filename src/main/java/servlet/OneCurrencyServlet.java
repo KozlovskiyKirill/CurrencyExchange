@@ -15,7 +15,7 @@ import model.Currency;
 
 import com.google.gson.Gson;
 
-@WebServlet("/currencies/*")
+@WebServlet("/currency/*")
 public class OneCurrencyServlet extends HttpServlet {
     private final CurrencyService _service = new CurrencyService();
     private final Gson gson = new Gson();
@@ -25,9 +25,8 @@ public class OneCurrencyServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
-            // Если просто /currency без кода валюты
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("Нет кода валюты");
+            resp.getWriter().write("{\"message\":\"Код валюты отсутствует в адресе\"}");
         }
         else{
             try {
@@ -36,17 +35,14 @@ public class OneCurrencyServlet extends HttpServlet {
                 CurrencyResponseDto currencyDto = DtoMapper.toCurrencyDto(currency);
                 resp.getWriter().write(gson.toJson(currencyDto));
             } catch (SQLException e) {
-                System.err.println(e.getMessage());
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                resp.getWriter().write("{\"Error\":\"база данных недоступна\"}");
+                resp.getWriter().write("{\"message\":\"база данных недоступна\"}");
             }
             catch (CurrencyNotFoundException e){
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.getWriter().write("Валюта не найдена");
+                resp.getWriter().write("{\"message\":\"Валюта не найдена\"}");
             }
         }
     }
 
 }
-
-

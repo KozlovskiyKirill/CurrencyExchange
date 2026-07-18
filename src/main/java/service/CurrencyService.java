@@ -1,6 +1,6 @@
 package service;
 
-import DAO.CurrencyDAO;
+import dao.CurrencyDAO;
 import exceptions.CurrencyAlreadyExistsException;
 import exceptions.CurrencyNotFoundException;
 import model.Currency;

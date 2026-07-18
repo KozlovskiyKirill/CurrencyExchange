@@ -25,9 +25,12 @@ public class ExchangeCurrencyServlet extends HttpServlet {
             String baseCode = req.getParameter("from");
             String targetCode = req.getParameter("to");
             String sAmount = req.getParameter("amount");
-            if(baseCode.trim().isEmpty() || targetCode.trim().isEmpty() || sAmount.trim().isEmpty()){
+            if(baseCode == null || baseCode.trim().isEmpty() ||
+               targetCode == null || targetCode.trim().isEmpty() ||
+               sAmount == null || sAmount.trim().isEmpty()){
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write("\"message\": \"Валюта не найдена\"");
+                resp.getWriter().write("{\"message\":\"Отсутствует нужное поле формы\"}");
+                return;
             }
             BigDecimal amount = new BigDecimal(sAmount);
             ExchangeCurrency exchange = _service.ExchangeCurrency(baseCode, targetCode, amount);
@@ -35,9 +38,8 @@ public class ExchangeCurrencyServlet extends HttpServlet {
             resp.getWriter().write(gson.toJson(exchangeDto));
         }
         catch (Exception e){
-            System.err.println(e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("{\"Error\":\"DB error\"}");
+            resp.getWriter().write("{\"message\":\"база данных недоступна\"}");
         }
 
     }

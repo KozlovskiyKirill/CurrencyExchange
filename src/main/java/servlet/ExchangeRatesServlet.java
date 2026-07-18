@@ -37,9 +37,8 @@ public class ExchangeRatesServlet extends HttpServlet{
 
         }
         catch (Exception e){
-            System.err.println(e.getMessage());
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write("{\"Error\":\"DB error\"}");
+            resp.getWriter().write("{\"message\":\"база данных недоступна\"}");
         }
 
     }
@@ -50,26 +49,29 @@ public class ExchangeRatesServlet extends HttpServlet{
             String baseCurrency = req.getParameter("baseCurrencyCode");
             String targetCurrency = req.getParameter("targetCurrencyCode");
             String s_rate = req.getParameter("rate");
-            if(baseCurrency.trim().isEmpty() || targetCurrency.trim().isEmpty() || s_rate.trim().isEmpty()){
+            if(baseCurrency == null || baseCurrency.trim().isEmpty() ||
+               targetCurrency == null || targetCurrency.trim().isEmpty() ||
+               s_rate == null || s_rate.trim().isEmpty()){
                 throw new BadRequestException("Отсутствует нужное поле формы");
             }
             BigDecimal rate = new BigDecimal(s_rate);
             ExchangeRate newRate = _service.addNewExchangeRate(baseCurrency,targetCurrency,rate);
             ExchangeRateResponseDto newRateDto = DtoMapper.toExchangeRateDto(newRate);
+            resp.setStatus(HttpServletResponse.SC_CREATED);
             resp.getWriter().write(gson.toJson(newRateDto));
 
         } catch (BadRequestException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(gson.toJson("{\"Error\":"+e.getMessage()+"\"}"));
+            resp.getWriter().write("{\"message\":\"Отсутствует нужное поле формы\"}");
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(gson.toJson("{\"Error\":"+e.getMessage()+"\"}"));
+            resp.getWriter().write("{\"message\":\"база данных недоступна\"}");
         } catch (ExchangeRateAlreadyExistsException e){
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
-            resp.getWriter().write(gson.toJson("{\"Error\":Валютная пара с таким кодом уже существует\"}"));
+            resp.getWriter().write("{\"message\":\"Валютная пара с таким кодом уже существует\"}");
         } catch(CurrencyNotFoundException e){
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(gson.toJson("{\"Error\":"+e.getMessage()+"\"}"));
+            resp.getWriter().write("{\"message\":\"Одна или обе валюта из валютной пары не существуют в БД\"}");
         }
     }
 }

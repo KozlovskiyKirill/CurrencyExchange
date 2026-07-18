@@ -1,4 +1,4 @@
-package DAO;
+package dao;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
