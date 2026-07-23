@@ -4,6 +4,8 @@ package servlet;
 import com.google.gson.Gson;
 import dto.DtoMapper;
 import dto.ExchangeCurrencyResponseDto;
+import exceptions.CurrencyNotFoundException;
+import exceptions.ExchangeRateNotFoundException;
 import model.ExchangeCurrency;
 import service.ExchangeRatesService;
 
@@ -36,6 +38,14 @@ public class ExchangeCurrencyServlet extends HttpServlet {
             ExchangeCurrency exchange = _service.ExchangeCurrency(baseCode, targetCode, amount);
             ExchangeCurrencyResponseDto exchangeDto = DtoMapper.toExchangeCurrencyDto(exchange);
             resp.getWriter().write(gson.toJson(exchangeDto));
+        }
+        catch (CurrencyNotFoundException e){
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.getWriter().write("{\"message\":\"Валюта не найдена\"}");
+        }
+        catch (ExchangeRateNotFoundException e){
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.getWriter().write("{\"message\":\"Обменный курс не найден\"}");
         }
         catch (Exception e){
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

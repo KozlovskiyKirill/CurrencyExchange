@@ -130,7 +130,7 @@ public class ExchangeRatesService {
             return exchange;
         }
 
-        return null;
+        throw new ExchangeRateNotFoundException("Обменный курс не найден");
     }
 
     private ExchangeCurrency exchange(Currency baseCurrency,Currency targetCurrency,
